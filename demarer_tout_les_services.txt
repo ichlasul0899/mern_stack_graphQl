@@ -1,0 +1,13 @@
+
+pour cree le server: https://www.youtube.com/watch?v=ZOHIZXRfvVY&list=PL4cUxeGkcC9iK6Qhn-QLcXCXPQUov1U7f&index=5
+    (on cree le server on telecharge l'application express dans le dossier serveur)
+
+pour demarer le server:
+    aller dans le fichier server et faire un node app pour demarer,
+    on peux aussi installer la commande nodemon qui permet de lancer le server et 
+    de l'actualiser a chaque fois qu'un changement est remarqué
+    pour lancer le server on privilégie donc la commande nodemon app
+
+pour cree graphql: https://www.youtube.com/watch?v=pH02J0U5OBI&list=PL4cUxeGkcC9iK6Qhn-QLcXCXPQUov1U7f&index=6
+
+

@@ -1,0 +1,233 @@
+Cree un fragment pour eviter les repetition
+
+# {
+#   leftComparison: author(id: "5e8f303acc004d0470ead54d") {
+#     ...comparFields
+#   }
+#   rightComparison: author(id: "5e8f303acc004d0470ead54e") {
+#   	...comparFields
+#   }
+# }
+
+# fragment comparFields on Author {
+#   name
+#   age
+#   books{
+#     name
+#   }
+# }
+
+
+# Variable parameter
+// ID = correspond a la valeur par defaut si rien n'est renseigné
+# query nameOfAuthors($id: ID ="5e8f303acc004d0470ead54e") {
+#   author(id: $id) {
+#     name
+#   }
+# }
+
+
+# directive
+# imaginons qu'une requetes peut potentielement
+# appelé plus ou moins de champs
+# par exemple on peut regarder si un auteur a ecrit un livre
+# en colaboration avec un autre et si c le cas affiché le collaborateur
+# sinon non
+
+  # query author($id: ID, $withFriends: Boolean!) {
+  #   author(id: $id) {
+  #     name
+  #     friends @include(if: $withFriends) {
+  #       name
+  #     }
+  #   }
+  # }
+# variable
+  # {
+  #   "id": "xxx",
+  #   "withFriends": false
+  # }
+# ici on spécifie via le include qu'on continue seulment si la 
+# condition est vrai grace a une Directive
+# @include(if: Boolean) Only include this field in the result if the argument is true.
+# @skip(if: Boolean) Skip this field if the argument is true.
+
+
+
+# mutation
+
+# mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+#   createReview(episode: $ep, review: $review) {
+#     stars
+#     commentary
+#   }
+# }
+#variables
+#  {
+#   "ep": "JEDI",
+#   "review": {
+#     "stars": 5,
+#     "commentary": "This is a great movie!"
+#   }
+# }
+
+
+Inline Fragments
+
+ENtré:
+query HeroForEpisode($ep: Episode!) {
+  hero(episode: $ep) {
+    name
+    ... on Droid {
+      primaryFunction
+    }
+    ... on Human {
+      height
+    }
+  }
+}
+
+// les instruction on son appelé sur les types UNION
+// ici la requetes hero retourne un types UNION
+// qui peut etre soi un Droid soi un Human
+variable:
+{
+  "ep": "JEDI"
+}
+
+Sorti:
+{
+  "data": {
+    "hero": {
+      "name": "R2-D2",
+      "primaryFunction": "Astromech"
+    }
+  }
+}
+
+
+TYPENAME
+
+// il est possible sur un types UNION 
+// le type de ce qui nous est renvoyé pour ensuite gerer correctement
+// ce type coté Front pour ça on utilise l'instruction 
+// __typename de graphql
+
+ex:
+ENtré:
+{
+  search(text: "an") {
+    __typename
+    ... on Human {
+      name
+    }
+    ... on Droid {
+      name
+    }
+    ... on Starship {
+      name
+    }
+  }
+}
+Sorti:
+{
+  "data": {
+    "search": [
+      {
+        "__typename": "Human",
+        "name": "Han Solo"
+      },
+      {
+        "__typename": "Human",
+        "name": "Leia Organa"
+      },
+      {
+        "__typename": "Starship",
+        "name": "TIE Advanced x1"
+      }
+    ]
+  }
+}
+
+
+SCHEMA AND TYPE
+
+dans graphql on a le systeme d'interface c'est a dire que pour une interface
+defini on peut avoir des type qui implement cette interface et qui donc doivent
+implementer les type defini dans linterface mais peuvent aussi les etendre exemple:
+
+interface Character {
+  id: ID!
+  name: String!
+  friends: [Character]
+  appearsIn: [Episode]!
+}
+
+type Human implements Character {
+  id: ID!
+  name: String!
+  friends: [Character]
+  appearsIn: [Episode]!
+  starships: [Starship]
+  totalCredits: Int
+}
+
+type Droid implements Character {
+  id: ID!
+  name: String!
+  friends: [Character]
+  appearsIn: [Episode]!
+  primaryFunction: String
+}
+
+il faut faire attention dans ce genre de cas car si l'on query un hero on ne sais pas
+si le type renvoyé sera de type droid ou humain, or le type droid et Human n'implement
+pour les meme type par conséquent il faut faire une disjonction des cas dans la requeteslorsque l'on demande les champs
+avec l'instruction:  ON
+
+query HeroForEpisode($ep: Episode!) {
+  hero(episode: $ep) {
+    name
+    ... on Droid {
+      primaryFunction
+    }
+  }
+}
+
+ici si l'on avait pas spécifie on Droid pour la requete de primaryFunction une erreur nous aurais
+ete renvoyé si le hero qui avaitete renvoyé aurais ete un humain
+
+Union type
+
+on peut definir un type union qui sera l'union de plusieur type
+
+union SearchResult = Human | Droid | Starship
+
+un defini ensuite la requete search qui renvoie un object de type SearchResult
+le result renvoyé par search peut donc potentielement etre de 3 types humain droid ou starships
+avec chacun des champ qui leur son propre on dois donc faire une disjonction des cas dans la 
+requete pour ne pas avoir de probleme de champs indefini
+
+{
+  search(text: "an") {
+    __typename
+    ... on Human {
+      name
+      height
+    }
+    ... on Droid {
+      name
+      primaryFunction
+    }
+    ... on Starship {
+      name
+      length
+    }
+  }
+}
+// __typename renvoie le nom du type renvoyé par la requetes
+
+
+
+
+
